@@ -14,9 +14,22 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            lazy: true
-            provider: app_user_provider
+        # main:
+        #    lazy: true
+        #    provider: app_user_provider
+
+        # Mise en commentaire la partie main pour eviter des conflits, et definition de login et api pour configurer jwt
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login_check
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -26,9 +39,13 @@ security:
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
+
+    #Specifier quel chemin necessiteront une authentification et quel chemin en ont pas besoin
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        # tout le monde pourra se loger
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        # Pour tout le reste, tout le monde doit-être authentifiés
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:
