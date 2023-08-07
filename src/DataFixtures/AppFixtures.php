@@ -11,12 +11,22 @@ use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+
 class AppFixtures extends Fixture
 {
+    // Recuperer l'outil pour hasher les mdp
+    private $userPasswordHasher;
+    
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher)
+    {
+        $this->userPasswordHasher = $userPasswordHasher;
+    }
+
     public function load(ObjectManager $manager): void
     {
         // create 20 products! Bam!
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 20; $i++) {
             $product = new Phone();
             $product->setBrand('Samsung');
             $product->setModel('S '.$i);
@@ -35,29 +45,48 @@ class AppFixtures extends Fixture
     }
 
     private function setClient(ObjectManager $manager) {
-        for ($i = 1; $i <= 2; $i++) {
-            // Instanciations de ma class Trick
-            $client = new Client();
-            $client->setUsername('Simon'.$i);
-            $client->setEmail('simoncestmoi@hotmail.fr'.$i);
-            $client->setPassword('toto'.$i);
-            $client->setRoles(['ROLES_USER']);
-       
-            $manager->persist($client);
+        
+        // Creation d'un utilisateur role user
+        $client = new Client();
+        $client->setEmail('user@bilemo.com');
+        $client->setUsername('SimonUser');
+        $client->setRoles(['ROLES_USER']);
+        $client->setPassword($this->userPasswordHasher->hashPassword($client, "password"));
+
+        $manager->persist($client);
 
 
-            // Creation de mes users associés au clients
-            for ($j = 1; $j <= 2; $j++) {
-                // Initialiser mon user
-                $user = new User();
+        // Creation d'un utilisateur role admin
+        $clientAdmin = new Client();
+        $clientAdmin->setEmail('admin@bilemo.com');
+        $clientAdmin->setUsername('SimonAdmin');
+        $clientAdmin->setRoles(['ROLES_ADMIN']);
+        $clientAdmin->setPassword($this->userPasswordHasher->hashPassword($clientAdmin, "password"));
 
-                $user->setName('toto'.$i);
-                $user->setClient($client);
+        $manager->persist($clientAdmin);
 
-                $manager->persist($user);
-            }
+
+
+
+        // Creation de mes users associés au clients
+        
+        // Initialiser mes user
+        $user = new User();
+
+        $user->setName('SimonUser');
+        $user->setClient($client);
+        $manager->persist($user);
+
+
+
+        $user2 = new User();
+
+        $user2->setName('SimonAdmin');
+        $user2->setClient($clientAdmin);
+        $manager->persist($user2);
+        
             
-        }
+        
 
         $manager->flush();
     }
