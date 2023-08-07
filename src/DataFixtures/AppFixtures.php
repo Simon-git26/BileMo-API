@@ -51,6 +51,7 @@ class AppFixtures extends Fixture
         $client->setEmail('user@bilemo.com');
         $client->setUsername('SimonUser');
         $client->setRoles(['ROLES_USER']);
+        // Hasher le mdp password en base
         $client->setPassword($this->userPasswordHasher->hashPassword($client, "password"));
 
         $manager->persist($client);
@@ -61,6 +62,7 @@ class AppFixtures extends Fixture
         $clientAdmin->setEmail('admin@bilemo.com');
         $clientAdmin->setUsername('SimonAdmin');
         $clientAdmin->setRoles(['ROLES_ADMIN']);
+        // Hasher le mdp password en base
         $clientAdmin->setPassword($this->userPasswordHasher->hashPassword($clientAdmin, "password"));
 
         $manager->persist($clientAdmin);
