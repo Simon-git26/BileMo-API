@@ -9,12 +9,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class PhoneController extends AbstractController
 {
     /**
-     * @Route("/phone", name="app_phone")
+     * @Route("/api/phones", name="app_phone")
      */
     public function index(): JsonResponse
     {
-        return $this->json([
-            'message' => 'Bienvenu sur le controller phone!',
+        return new JsonResponse([
+            'message' => 'Bienvenu sur le controller phone pour récuperer la liste de tous les téléphones!',
             'path' => 'src/Controller/PhoneController.php',
         ]);
     }
