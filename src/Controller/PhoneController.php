@@ -2,20 +2,50 @@
 
 namespace App\Controller;
 
+use App\Repository\PhoneRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+// Serializer
+use Symfony\Component\Serializer\SerializerInterface;
+// Importer l'entite pour le param converter
+use App\Entity\Phone;
+
 
 class PhoneController extends AbstractController
 {
     /**
-     * @Route("/api/phones", name="app_phone")
-     */
-    public function index(): JsonResponse
+     * @Route("/api/phones", name="app_phone", methods={"GET"})
+     * 
+     * ********************* Retourne la liste de tous les phones ******************************
+    */
+    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
     {
-        return new JsonResponse([
-            'message' => 'Bienvenu sur le controller phone pour récuperer la liste de tous les téléphones!',
-            'path' => 'src/Controller/PhoneController.php',
-        ]);
+        // Recuperer tous mes phones
+        $phonesList = $phoneRepository->findAll();
+
+        // Convertir grace au serializer ma phonesList en json et stocker le resultat
+        $jsonPhonesList = $serializer->serialize($phonesList, 'json');
+
+        /* Retourne la liste convertit en json, la response, les headers part defaut, 
+        * et true qui indique au jsonresponse que les données sont déja convertis
+        */
+        return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
+    }
+
+
+
+    /**
+     * @Route("/api/phones/{id}", name="app_detailPhone", methods={"GET"})
+     * 
+     * ************************** Retourne un phone selon son id **********************************
+     * Utilisation du ParamConverter de Symfony afin d'envoyer la bonne entité correspondante
+     * Renvoi un 200 en succés, et un 404 quand il ne trouve pas l'entité correspondant à l'id
+    */
+    public function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
+    {
+        $jsonPhone = $serializer->serialize($phone, 'json');
+        return new JsonResponse($jsonPhone, Response::HTTP_OK, [], true);
     }
 }
