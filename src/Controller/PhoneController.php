@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 // Importer l'entite pour le param converter
 use App\Entity\Phone;
+// Utiliser pour la suppression
+use Doctrine\ORM\EntityManagerInterface;
 
 
 class PhoneController extends AbstractController
@@ -47,5 +49,22 @@ class PhoneController extends AbstractController
     {
         $jsonPhone = $serializer->serialize($phone, 'json');
         return new JsonResponse($jsonPhone, Response::HTTP_OK, [], true);
+    }
+
+
+
+    /**
+     * @Route("/api/phones/{id}", name="app_deletePhone", methods={"DELETE"})
+     * 
+     * ************************** Supprimer un Phone selon son id **********************************
+    */
+    public function deletePhone(Phone $phone, EntityManagerInterface $em): JsonResponse
+    {
+        // Supprimer le phone en question
+        $em->remove($phone);
+        // Confirmer
+        $em->flush();
+        // Retourner la reponse 204, car c'est un succé, mais no content car il n'y a plus de contenu
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
