@@ -13,7 +13,9 @@ use Symfony\Component\Serializer\SerializerInterface;
 use App\Entity\Phone;
 // Utiliser pour la suppression
 use Doctrine\ORM\EntityManagerInterface;
-
+use Symfony\Component\HttpFoundation\Request;
+// Url Generator en cas de POST Phone
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PhoneController extends AbstractController
 {
@@ -49,6 +51,35 @@ class PhoneController extends AbstractController
     {
         $jsonPhone = $serializer->serialize($phone, 'json');
         return new JsonResponse($jsonPhone, Response::HTTP_OK, [], true);
+    }
+
+
+
+    /**
+     * @Route("/api/phone", name="app_createPhone", methods={"POST"})
+     * 
+     * **************************  Créer un Phone **********************************
+     * Request permet de récupéré les infos que j"ai envoyé en Body de la requete
+    */
+    public function createPhone(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    {
+        // Récupéré les données posté, et les déserializer dans un objet Phone, donc $phone contiendra un véritable phone
+        $phone = $serializer->deserialize($request->getContent(), Phone::class, 'json');
+        // Enregistrer et Confirmer
+        $em->persist($phone);
+        $em->flush();
+
+        $jsonPhone = $serializer->serialize($phone, 'json');
+
+
+        /* Calculer l'url pour pouvoir indiquez l'url du Phone que l"on vient de créer en header pour pouvoir aller tester rapidement 
+        *  Si la création c'est bien passé en récupérant mon nouveau phone selon son id par exemple
+        */
+        $location = $urlGenerator->generate('app_detailPhone', ['id' => $phone->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        // Code 201 pour la création
+        // Retourner dans le headers de la reponse que j'ai besoin de mon nouvel element location
+        return new JsonResponse($jsonPhone, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
 
