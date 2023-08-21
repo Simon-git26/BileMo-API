@@ -16,13 +16,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 // Url Generator en cas de POST Phone
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+// Pour la modification d'un phone
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+
 
 class PhoneController extends AbstractController
 {
     /**
      * @Route("/api/phones", name="app_phone", methods={"GET"})
      * 
-     * ********************* Retourne la liste de tous les phones ******************************
+     * ********************************** Retourne la liste de tous les phones ***********************************************
     */
     public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
     {
@@ -43,7 +46,8 @@ class PhoneController extends AbstractController
     /**
      * @Route("/api/phones/{id}", name="app_detailPhone", methods={"GET"})
      * 
-     * ************************** Retourne un phone selon son id **********************************
+     * ************************************** Retourne un phone selon son id *******************************************
+     * 
      * Utilisation du ParamConverter de Symfony afin d'envoyer la bonne entité correspondante
      * Renvoi un 200 en succés, et un 404 quand il ne trouve pas l'entité correspondant à l'id
     */
@@ -58,7 +62,8 @@ class PhoneController extends AbstractController
     /**
      * @Route("/api/phone", name="app_createPhone", methods={"POST"})
      * 
-     * **************************  Créer un Phone **********************************
+     * *********************************************  Créer un Phone *************************************************
+     * 
      * Request permet de récupéré les infos que j"ai envoyé en Body de la requete
     */
     public function createPhone(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
@@ -87,7 +92,7 @@ class PhoneController extends AbstractController
     /**
      * @Route("/api/phones/{id}", name="app_deletePhone", methods={"DELETE"})
      * 
-     * ************************** Supprimer un Phone selon son id **********************************
+     * *********************************** Supprimer un Phone selon son id ****************************************
     */
     public function deletePhone(Phone $phone, EntityManagerInterface $em): JsonResponse
     {
@@ -98,4 +103,30 @@ class PhoneController extends AbstractController
         // Retourner la reponse 204, car c'est un succé, mais no content car il n'y a plus de contenu
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
+
+
+
+
+    /**
+     * @Route("/api/phones/{id}", name="app_updatePhone", methods={"PUT"})
+     * 
+     * *********************************************  Modifier un Phone *************************************************
+     * 
+     * CurrentPhone contient l'element qui va correspondre a l'id en base de donnée, Avant d'avoir eu les nouvelles infos du PUT
+     * 
+    */
+    public function updatePhone(Request $request, SerializerInterface $serializer, Phone $currentPhone, EntityManagerInterface $em): JsonResponse 
+    {
+        // Grace à AbstractNormalizer, je deserialize directement à l'interieur de currentPhone
+        $updatedPhone = $serializer->deserialize($request->getContent(), 
+            Phone::class, 
+            'json', 
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $currentPhone])
+        ;
+     
+        $em->persist($updatedPhone);
+        $em->flush();
+        
+        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+   }
 }
