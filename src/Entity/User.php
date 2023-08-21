@@ -28,6 +28,7 @@ class User
 
     /**
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="users")
+     * 
      */
     private $client;
 
