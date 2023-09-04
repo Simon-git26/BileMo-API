@@ -39,6 +39,7 @@ class PhoneController extends AbstractController
     public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
 
+        // Pagination ...
         // Récupérez les données du Body de la requête en JSON
         $requestData = json_decode($request->getContent(), true);
 
@@ -51,7 +52,8 @@ class PhoneController extends AbstractController
         $page = $requestData['page'];
         $limit = $requestData['limit'];
 
-
+        
+        // Mise en Cache ...
         // Systeme de mise en cache, créer un id qui represente la requete recu
         $idCache = "getAllBooks-" . $page . "-" . $limit;
 
@@ -72,7 +74,8 @@ class PhoneController extends AbstractController
 
 
      
-        /* Retourne la liste convertit en json, la response, les headers part defaut, 
+        /* 
+        * Retourne la liste convertit en json, la response, les headers part defaut, 
         * et true qui indique au jsonresponse que les données sont déja convertis
         */
         return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);

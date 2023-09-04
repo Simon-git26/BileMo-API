@@ -32,12 +32,29 @@ class UserController extends AbstractController
     /**
      * @Route("/api/users", name="app_user", methods={"GET"})
      * 
-     * ********************************** Retourne la liste de tous les Users et leur client associé ***********************************************
+     * ********************************** Retourne la liste de tous les Users ***********************************************
     */
-    public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
     {
+        // Pagination ...
+        // Récupérez les données du Body de la requête en JSON
+        $requestData = json_decode($request->getContent(), true);
+
+        // S'assurez-vous que les données de pagination sont présentes et valides
+        if (!isset($requestData['page']) || !isset($requestData['limit'])) {
+            return new JsonResponse(['error' => 'Invalid pagination data'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Si les données de pagination sont présente en Body et valides, je les attribue au var $page et $limit
+        $page = $requestData['page'];
+        $limit = $requestData['limit'];
+
+
+        // Recuperer mes users en passant par la nouvelle methode de pagination
+        $usersList = $userRepository->findAllWithPagination($page, $limit);
+
         // Recuperer tous mes users
-        $usersList = $userRepository->findAll();
+        // $usersList = $userRepository->findAll();
 
         // Convertir grace au serializer ma usersList en json et stocker le resultat et indiqué que je veux le group getUsers
         $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
