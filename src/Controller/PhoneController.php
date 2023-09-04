@@ -38,9 +38,19 @@ class PhoneController extends AbstractController
     */
     public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
-        // Grace au param Request, je recupere la requetes de Postman qui contient les param url pour ma pagination, j'attribue au var
-        $page = $request->get('page', 1);
-        $limit = $request->get('limit', 3);
+
+        // Récupérez les données du Body de la requête en JSON
+        $requestData = json_decode($request->getContent(), true);
+
+        // S'assurez-vous que les données de pagination sont présentes et valides
+        if (!isset($requestData['page']) || !isset($requestData['limit'])) {
+            return new JsonResponse(['error' => 'Invalid pagination data'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Si les données de pagination sont présente en Body et valides, je les attribue au var $page et $limit
+        $page = $requestData['page'];
+        $limit = $requestData['limit'];
+
 
         // Systeme de mise en cache, créer un id qui represente la requete recu
         $idCache = "getAllBooks-" . $page . "-" . $limit;
