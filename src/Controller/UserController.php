@@ -82,8 +82,6 @@ class UserController extends AbstractController
 
 
 
-
-
     /**
      * @Route("/api/user", name="app_createUser", methods={"POST"})
      * 
@@ -112,11 +110,6 @@ class UserController extends AbstractController
 
 
 
-
-
-
-
-
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
       
 
@@ -131,5 +124,21 @@ class UserController extends AbstractController
 
     }
 
+
+
+    /**
+     * @Route("/api/users/{id}", name="app_deleteUser", methods={"DELETE"})
+     * 
+     * *********************************** Supprimer un Phone selon son id ****************************************
+    */
+    public function deleteUser(User $user, EntityManagerInterface $em): JsonResponse
+    {
+        // Supprimer le user en question
+        $em->remove($user);
+        // Confirmer
+        $em->flush();
+        // Retourner la reponse 204, car c'est un succé, mais no content car il n'y a plus de contenu
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
     
 }
