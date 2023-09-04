@@ -27,10 +27,15 @@ class PhoneController extends AbstractController
      * 
      * ********************************** Retourne la liste de tous les phones ***********************************************
     */
-    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
-        // Recuperer tous mes phones
-        $phonesList = $phoneRepository->findAll();
+        // Grace au param Request, je recupere la requetes de Postman qui contient les param url pour ma pagination, j'attribue au var
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
+
+
+        // Recuperer tous mes phones en passant par la nouvelle methode de pagination
+        $phonesList = $phoneRepository->findAllWithPagination($page, $limit);
 
         // Convertir grace au serializer ma phonesList en json et stocker le resultat
         $jsonPhonesList = $serializer->serialize($phonesList, 'json');
