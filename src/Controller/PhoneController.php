@@ -18,33 +18,56 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 // Pour la modification d'un phone
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+// Systeme de mise en cache
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 
 class PhoneController extends AbstractController
 {
     /**
+     * **************************** Retourne la liste de tous les phones, pagination et cache ********************************
+     * 
      * @Route("/api/phones", name="app_phone", methods={"GET"})
      * 
-     * ********************************** Retourne la liste de tous les phones ***********************************************
+     * @param PhoneRepository $phoneRepository
+     * @param SerializerInterface $serializer
+     * @param Request $request
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
     */
-    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request): JsonResponse
+    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
         // Grace au param Request, je recupere la requetes de Postman qui contient les param url pour ma pagination, j'attribue au var
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
+        // Systeme de mise en cache, créer un id qui represente la requete recu
+        $idCache = "getAllBooks-" . $page . "-" . $limit;
 
-        // Recuperer tous mes phones en passant par la nouvelle methode de pagination
-        $phonesList = $phoneRepository->findAllWithPagination($page, $limit);
+        
+        // Mettre en cache l'objet déja serializer
+        $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
+            echo ("L'element vient d'etre mise en cache !\n");
+            
+            // Attribuer le tag phonesCache, qui permettra par la suite de savoir quel tag supprimer pour reset le cache
+            $item->tag("phonesCache");
 
-        // Convertir grace au serializer ma phonesList en json et stocker le resultat
-        $jsonPhonesList = $serializer->serialize($phonesList, 'json');
+            // Recuperer mes phones en passant par la nouvelle methode de pagination
+            $phonesList = $phoneRepository->findAllWithPagination($page, $limit);
 
+            // Convertir grace au serializer ma phonesList en json et stocker le resultat
+            return $serializer->serialize($phonesList, 'json');
+        });
+
+
+     
         /* Retourne la liste convertit en json, la response, les headers part defaut, 
         * et true qui indique au jsonresponse que les données sont déja convertis
         */
         return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
     }
+
 
 
 
