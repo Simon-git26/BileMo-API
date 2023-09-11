@@ -169,8 +169,14 @@ class UserController extends AbstractController
      * 
      * *********************************** Supprimer un Phone selon son id ****************************************
     */
-    public function deleteUser(User $user, EntityManagerInterface $em): JsonResponse
+    public function deleteUser(User $user, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
+        /*
+        * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
+        * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
+        */
+        $cache->invalidateTags(["usersCache"]);
+
         // Supprimer le user en question
         $em->remove($user);
         // Confirmer
