@@ -90,12 +90,16 @@ class PhoneController extends AbstractController
 
 
     /**
-     * @Route("/api/phones/{id}", name="app_detailPhone", methods={"GET"})
-     * 
      * ************************************** Retourne un phone selon son id *******************************************
+     * 
+     * @Route("/api/phones/{id}", name="app_detailPhone", methods={"GET"})
      * 
      * Utilisation du ParamConverter de Symfony afin d'envoyer la bonne entité correspondante
      * Renvoi un 200 en succés, et un 404 quand il ne trouve pas l'entité correspondant à l'id
+     * 
+     * @param Phone $phone
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
     */
     public function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
@@ -106,11 +110,17 @@ class PhoneController extends AbstractController
 
 
     /**
-     * @Route("/api/phone", name="app_createPhone", methods={"POST"})
-     * 
      * *********************************************  Créer un Phone *************************************************
      * 
+     * @Route("/api/phone", name="app_createPhone", methods={"POST"})
+     * 
      * Request permet de récupéré les infos que j"ai envoyé en Body de la requete
+     * 
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
     */
     public function createPhone(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
@@ -136,9 +146,14 @@ class PhoneController extends AbstractController
 
 
     /**
+     * *********************************** Supprimer un Phone selon son id ****************************************
+     * 
      * @Route("/api/phones/{id}", name="app_deletePhone", methods={"DELETE"})
      * 
-     * *********************************** Supprimer un Phone selon son id ****************************************
+     * @param Phone $phone
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
     */
     public function deletePhone(Phone $phone, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
@@ -160,12 +175,18 @@ class PhoneController extends AbstractController
 
 
     /**
-     * @Route("/api/phones/{id}", name="app_updatePhone", methods={"PUT"})
-     * 
      * *********************************************  Modifier un Phone *************************************************
+     * 
+     * @Route("/api/phones/{id}", name="app_updatePhone", methods={"PUT"})
      * 
      * CurrentPhone contient l'element qui va correspondre a l'id en base de donnée, Avant d'avoir eu les nouvelles infos du PUT
      * 
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param Phone $currentPhone
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
     */
     public function updatePhone(Request $request, SerializerInterface $serializer, Phone $currentPhone, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse 
     {

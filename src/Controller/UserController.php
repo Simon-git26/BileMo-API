@@ -9,13 +9,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
-
 // Utiliser pour la suppression
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 // Url Generator en cas de POST Phone
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 
 // Importer l'entite pour le param converter
 use App\Entity\User;
@@ -32,9 +30,15 @@ use Symfony\Contracts\Cache\ItemInterface;
 class UserController extends AbstractController
 {
     /**
+     * ********************************* Retourne la liste de tous les Users ***********************************************
+     * 
      * @Route("/api/users", name="app_user", methods={"GET"})
      * 
-     * ********************************** Retourne la liste de tous les Users ***********************************************
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @param SerializerInterface $serializer
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
     */
     public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
@@ -89,10 +93,13 @@ class UserController extends AbstractController
 
 
     /**
-     * @Route("/api/users/{id}", name="app_detailUser", methods={"GET"})
-     * 
      * ************************************** Retourne un user selon son id *******************************************
      * 
+     * @Route("/api/users/{id}", name="app_detailUser", methods={"GET"})
+     * 
+     * @param User $user
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
     */
     public function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
     {
@@ -104,10 +111,13 @@ class UserController extends AbstractController
 
 
     /**
-     * @Route("/api/clients/{id}/users", name="app_client_users", methods={"GET"})
-     * 
      * ************************************** Retourne la liste des users selon l'id du client donnée *******************************************
      * 
+     * @Route("/api/clients/{id}/users", name="app_client_users", methods={"GET"})
+     * 
+     * @param Client $client
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
     */
     public function getUsersListByClient(Client $client, SerializerInterface $serializer): JsonResponse
     {
@@ -121,10 +131,16 @@ class UserController extends AbstractController
 
 
     /**
-     * @Route("/api/user", name="app_createUser", methods={"POST"})
-     * 
      * ************************************** Ajouter un utilisateur liés a un client *******************************************
      * 
+     * @Route("/api/user", name="app_createUser", methods={"POST"})
+     * 
+     * @param ClientRepository $clientRepository
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $em
+     * @param UrlGeneratorInterface $urlGenerator
+     * @return JsonResponse
     */
     public function createUser(ClientRepository $clientRepository, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
@@ -165,9 +181,14 @@ class UserController extends AbstractController
 
 
     /**
+     * *********************************** Supprimer un Phone selon son id ****************************************
+     * 
      * @Route("/api/users/{id}", name="app_deleteUser", methods={"DELETE"})
      * 
-     * *********************************** Supprimer un Phone selon son id ****************************************
+     * @param User $user
+     * @param EntityManagerInterface $em
+     * @param TagAwareCacheInterface $cache
+     * @return JsonResponse
     */
     public function deleteUser(User $user, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {

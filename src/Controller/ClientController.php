@@ -14,9 +14,13 @@ class ClientController extends AbstractController
 {
   
     /**
+     * ********************************** Retourne la liste de tous les Clients et leur Users liés ***********************************************
+     * 
      * @Route("/api/clients", name="app_client", methods={"GET"})
      * 
-     * ********************************** Retourne la liste de tous les Clients et leur Users liés ***********************************************
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return JsonResponse
     */
     public function getAllClients(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
     {
