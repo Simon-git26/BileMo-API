@@ -22,8 +22,10 @@ use App\Entity\User;
 use App\Entity\Client;
 // Serializer
 use Symfony\Component\Serializer\SerializerInterface;
-//use Symfony\Component\Serializer\SerializationContext;
-//use JMS\Serializer\SerializationContext;
+
+// Systeme de mise en cache
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 
 
@@ -34,7 +36,7 @@ class UserController extends AbstractController
      * 
      * ********************************** Retourne la liste de tous les Users ***********************************************
     */
-    public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
         // Pagination ...
         // Récupérez les données du Body de la requête en JSON
@@ -50,14 +52,33 @@ class UserController extends AbstractController
         $limit = $requestData['limit'];
 
 
-        // Recuperer mes users en passant par la nouvelle methode de pagination
-        $usersList = $userRepository->findAllWithPagination($page, $limit);
 
-        // Recuperer tous mes users
-        // $usersList = $userRepository->findAll();
+        // Mise en Cache ...
+        // Systeme de mise en cache, créer un id qui represente la requete recu
+        $idCache = "getAllUsers-" . $page . "-" . $limit;
 
-        // Convertir grace au serializer ma usersList en json et stocker le resultat et indiqué que je veux le group getUsers
-        $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
+
+        /*
+        * Mettre en cache l'objet déja serializer, la liste sera recuperer directement part mon cache si existe, 
+        * sinon utiliser la fonction anonyme passé en param
+        *
+        * Function anonyme : $item represente ce qui va etre stocker en cache
+        */
+        $jsonUsersList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
+            echo ("L'element vient d'etre mise en cache !\n");
+            
+            // Attribuer le tag usersCache, qui permettra par la suite de savoir quel tag supprimer pour reset le cache
+            $item->tag("usersCache");
+
+            // Recuperer mes users en passant par la nouvelle methode de pagination
+            $usersList = $userRepository->findAllWithPagination($page, $limit);
+
+            // Convertir grace au serializer ma usersList en json et stocker le resultat et indiqué que je veux le group getUsers
+            return $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
+        });
+
+
+  
 
         /* Retourne la liste convertit en json, la response, les headers part defaut, 
         * et true qui indique au jsonresponse que les données sont déja convertis

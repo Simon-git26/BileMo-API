@@ -55,10 +55,15 @@ class PhoneController extends AbstractController
         
         // Mise en Cache ...
         // Systeme de mise en cache, créer un id qui represente la requete recu
-        $idCache = "getAllBooks-" . $page . "-" . $limit;
+        $idCache = "getAllPhones-" . $page . "-" . $limit;
 
         
-        // Mettre en cache l'objet déja serializer
+        /*
+        * Mettre en cache l'objet déja serializer, la liste sera recuperer directement part mon cache si existe, 
+        * sinon utiliser la fonction anonyme passé en param
+        *
+        * Function anonyme : $item represente ce qui va etre stocker en cache
+        */
         $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
             echo ("L'element vient d'etre mise en cache !\n");
             
@@ -135,8 +140,14 @@ class PhoneController extends AbstractController
      * 
      * *********************************** Supprimer un Phone selon son id ****************************************
     */
-    public function deletePhone(Phone $phone, EntityManagerInterface $em): JsonResponse
+    public function deletePhone(Phone $phone, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
     {
+        /*
+        * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
+        * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
+        */
+        $cache->invalidateTags(["phonesCache"]);
+
         // Supprimer le phone en question
         $em->remove($phone);
         // Confirmer
@@ -156,8 +167,14 @@ class PhoneController extends AbstractController
      * CurrentPhone contient l'element qui va correspondre a l'id en base de donnée, Avant d'avoir eu les nouvelles infos du PUT
      * 
     */
-    public function updatePhone(Request $request, SerializerInterface $serializer, Phone $currentPhone, EntityManagerInterface $em): JsonResponse 
+    public function updatePhone(Request $request, SerializerInterface $serializer, Phone $currentPhone, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse 
     {
+        /*
+        * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
+        * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
+        */
+        $cache->invalidateTags(["phonesCache"]);
+
         // Grace à AbstractNormalizer, je deserialize directement à l'interieur de currentPhone
         $updatedPhone = $serializer->deserialize($request->getContent(), 
             Phone::class, 
