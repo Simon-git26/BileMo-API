@@ -6,6 +6,8 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 // Utilisation des Groups
 use Symfony\Component\Serializer\Annotation\Groups;
+// Ajout de la Validation
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -23,6 +25,19 @@ class User
     /**
      * @ORM\Column(type="string", length=180)
      * @Groups({"getUsers"})
+     * 
+     *
+     * @Assert\NotBlank(
+     *      message = "La nom du user est obligatoire !"
+     * )
+     * 
+     * @Assert\Length(
+     *      min = 1, 
+     *      max = 180, 
+     *      minMessage = "Le nom doit faire au moins {{ limit }} caractères", 
+     *      maxMessage = "Le nom ne peut pas faire plus de {{ limit }} caractères"
+     * )
+     * 
      */
     private $name;
 

@@ -25,6 +25,9 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
+// Utilisation de la validation
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 
 
 class UserController extends AbstractController
@@ -142,7 +145,7 @@ class UserController extends AbstractController
      * @param UrlGeneratorInterface $urlGenerator
      * @return JsonResponse
     */
-    public function createUser(ClientRepository $clientRepository, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createUser(ClientRepository $clientRepository, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
         // Récupéré les données posté, et les déserializer dans un objet User
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
@@ -158,6 +161,17 @@ class UserController extends AbstractController
         // Si "find" ne trouve pas l'auteur, alors null sera retourné.
         
         $user->setClient($clientRepository->find($idClient));
+
+
+        // Avant d'enregistrer mon user, je verifie si celui ci est valide grace au Constraintes de validation utilisée en Entity.
+        // Verifie les erreurs
+        // Demande au validator de valider l'entity puser, le resultat est stocké dans $errors
+        $errors = $validator->validate($user);
+
+        //Si errors présente, alors retourner une JsonResponse avec l'erros sérialisée et retour d"une bad reponse http
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
 
         $em->persist($user);
         $em->flush();
