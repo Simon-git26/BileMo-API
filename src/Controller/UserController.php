@@ -181,7 +181,7 @@ class UserController extends AbstractController
 
 
     /**
-     * *********************************** Supprimer un Phone selon son id ****************************************
+     * *********************************** Supprimer un User selon son id ****************************************
      * 
      * @Route("/api/users/{id}", name="app_deleteUser", methods={"DELETE"})
      * 
