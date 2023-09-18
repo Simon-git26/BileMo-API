@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 // Importer l'entite pour le param converter
 use App\Entity\User;
 use App\Entity\Client;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 // Serializer
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -154,13 +155,29 @@ class UserController extends AbstractController
         // Récupération de l'ensemble des données envoyées sous forme de tableau
         $content = $request->toArray();
 
-        // Récupération de l'idAuthor. S'il n'est pas défini, alors on met -1 par défaut.
-        $idClient = $content['id'] ?? -1;
+        // Récupération de l'idClient. S'il n'est pas défini, renvoyer une erreur.
+        if ($content['id']) {
+            $idClient = $content['id'];
+        } else {
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requetes est invalide !");
+        }
 
-        // On cherche l'auteur qui correspond et on l'assigne au livre.
-        // Si "find" ne trouve pas l'auteur, alors null sera retourné.
-        
-        $user->setClient($clientRepository->find($idClient));
+        // On cherche le client qui correspond et on l'assigne au user.
+
+        // Si "find" ne trouve pas le client, alors je renvoi une erreur.
+
+        // Cherchez le client correspondant
+        $client = $clientRepository->find($idClient);
+
+        // Vérifiez si le client n'a pas été trouvé
+        if ($client === null) {
+            throw new HttpException(JsonResponse::HTTP_BAD_REQUEST, "La requête est invalide, le client n'est pas trouvé !");
+        }
+
+        // Assigner le client au user seulement s'il a été trouvé
+        $user->setClient($client);
+
+       
 
 
         // Avant d'enregistrer mon user, je verifie si celui ci est valide grace au Constraintes de validation utilisée en Entity.
