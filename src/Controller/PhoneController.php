@@ -21,6 +21,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 // Systeme de mise en cache
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+// Utilisation de la validation
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 class PhoneController extends AbstractController
@@ -122,10 +124,23 @@ class PhoneController extends AbstractController
      * @param UrlGeneratorInterface $urlGenerator
      * @return JsonResponse
     */
-    public function createPhone(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createPhone(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
         // Récupéré les données posté, et les déserializer dans un objet Phone, donc $phone contiendra un véritable phone
         $phone = $serializer->deserialize($request->getContent(), Phone::class, 'json');
+
+
+        // Avant d'enregistrer mon phone, je verifie si celui ci est valide grace au Constraintes de validation utilisée en Entity.
+        // Verifie les erreurs
+        // Demande au validator de valider l'entity phone, le resultat est stocké dans $errors
+        $errors = $validator->validate($phone);
+
+        //Si errors présente, alors retourner une JsonResponse avec l'erros sérialisée et retour d"une bad reponse http
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
+
+
         // Enregistrer et Confirmer
         $em->persist($phone);
         $em->flush();
