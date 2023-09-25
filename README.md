@@ -126,7 +126,7 @@ Technologies:
     ```
 
 
-## Liste des CURL pouvant être exécuter avec mon projet
+## Liste des CURL pouvant être exécutés avec mon projet
 
 # Login Token 
 * Authentification:
@@ -195,17 +195,20 @@ Technologies:
 
 
 * Réupérer un utilisateur:
+
     URL : http://127.0.0.1:8000/api/users/24
     Method : GET
     Token : Header → Authorization → bearer $TOKEN
     
 * Réupérer la liste des users sur un client donné:
+
     URL : http://127.0.0.1:8000/api/clients/29/users
     Method : GET
     Token : Header → Authorization → bearer $TOKEN
     
 
 * Ajouter un utilisateur à un client donné:
+
     URL : http://127.0.0.1:8000/api/user
     Method : POST
     Token : Header → Authorization → bearer $TOKEN
