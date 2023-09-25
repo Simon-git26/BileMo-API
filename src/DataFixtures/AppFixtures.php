@@ -73,22 +73,23 @@ class AppFixtures extends Fixture
         // Creation de mes users associés au clients
         
         // Initialiser mes user
-        $user = new User();
-
-        $user->setName('SimonUser');
-        $user->setClient($client);
-        $manager->persist($user);
-
-
-
-        $user2 = new User();
-
-        $user2->setName('SimonAdmin');
-        $user2->setClient($clientAdmin);
-        $manager->persist($user2);
         
-            
-        
+
+
+        for ($i = 0; $i < 5; $i++) {
+            $user = new User();
+            $user->setName('SimonUser '.$i);
+            $user->setClient($client);
+            $manager->persist($user);
+        }
+
+        for ($i = 0; $i < 5; $i++) {
+            $user2 = new User();
+            $user2->setName('SimonAdmin '.$i);
+            $user2->setClient($clientAdmin);
+            $manager->persist($user2);
+        }
+
 
         $manager->flush();
     }
