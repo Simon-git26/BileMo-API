@@ -96,7 +96,7 @@ Technologies:
 ## Authentification avec JWT
 * Installer le composant Security
     ```bash
-    openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+    composer require security
     ```
 * Créer un user 
     ```bash
