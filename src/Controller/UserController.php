@@ -29,6 +29,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 // Utilisation de la validation
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Import de isGranted pour verifier le role du user connecte
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+
 
 
 class UserController extends AbstractController
@@ -215,6 +218,7 @@ class UserController extends AbstractController
      * *********************************** Supprimer un User selon son id ****************************************
      * 
      * @Route("/api/users/{id}", name="app_deleteUser", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
      * 
      * @param User $user
      * @param EntityManagerInterface $em
