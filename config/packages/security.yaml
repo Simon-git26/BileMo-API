@@ -42,8 +42,10 @@ security:
 
     #Specifier quel chemin necessiteront une authentification et quel chemin en ont pas besoin
     access_control:
-        # tout le monde pourra se loger
+        # tout le monde peut se loger
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        # Concernant ma doc Nelmio
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
         # Pour tout le reste, tout le monde doit-être authentifiés
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
