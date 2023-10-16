@@ -125,6 +125,9 @@ Technologies:
     symfony server:start
     ```
 
+* Url de la documentation Nelmio:
+    URL : http://127.0.0.1:8000/api/doc
+    
 
 ## Liste des CURL pouvant être exécutés avec mon projet
 
