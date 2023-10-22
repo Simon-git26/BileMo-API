@@ -47,7 +47,7 @@ class PhoneController extends AbstractController
 
         // S'assurez-vous que les données de pagination sont présentes et valides
         if (!isset($requestData['page']) || !isset($requestData['limit'])) {
-            return new JsonResponse(['error' => 'Invalid pagination data'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'données invalide'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         // Si les données de pagination sont présente en Body et valides, je les attribue au var $page et $limit
