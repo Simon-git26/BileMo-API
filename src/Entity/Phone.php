@@ -29,7 +29,7 @@ class Phone
      * @ORM\Column(type="string", length=255)
      * 
      * @Assert\NotBlank(
-     *      message = "La marque du produit est obligatoire !"
+     *      message = "Un champ est manquant !"
      * )
      * 
      * @Assert\Length(
@@ -46,7 +46,7 @@ class Phone
      * @ORM\Column(type="string", length=255)
      * 
      * @Assert\NotBlank(
-     *      message = "La model du produit est obligatoire !"
+     *      message = "Un champ est manquant !"
      * )
      * 
      * @Assert\Length(
@@ -64,7 +64,7 @@ class Phone
      * 
      *
      * @Assert\NotBlank(
-     *      message = "La couleur du produit est obligatoire !"
+     *      message = "Un champ est manquant !"
      * )
      * 
      * @Assert\Length(
@@ -80,7 +80,7 @@ class Phone
     /**
      * @ORM\Column(type="integer")
      * 
-     * @Assert\Positive(message = "Le prix doit être supérieur à 0 !")
+     * @Assert\Positive(message = "Le prix doit être conforme !")
      */
     private $price;
 
@@ -89,7 +89,7 @@ class Phone
      * 
      *
      * @Assert\NotBlank(
-     *      message = "La description du produit est obligatoire !"
+     *      message = "Un champ est manquant !"
      * )
      * 
      * @Assert\Length(
@@ -105,7 +105,7 @@ class Phone
     /**
      * @ORM\Column(type="integer")
      * 
-     * @Assert\Positive(message = "Le stockage doit être supérieur à 0 !")
+     * @Assert\Positive(message = "Le stockage doit être conforme !")
      */
     private $storage;
 

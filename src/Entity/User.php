@@ -28,7 +28,7 @@ class User
      * 
      *
      * @Assert\NotBlank(
-     *      message = "La nom du user est obligatoire !"
+     *      message = "Un champ est manquant !"
      * )
      * 
      * @Assert\Length(

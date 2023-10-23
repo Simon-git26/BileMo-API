@@ -33,13 +33,42 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 
+// Doc Nelmio
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
+
 
 class UserController extends AbstractController
 {
+
+
+
     /**
-     * ********************************* Retourne la liste de tous les Users ***********************************************
+     * Retourne la liste de tous les utilisateurs avec pagination.
      * 
      * @Route("/api/users", name="app_user", methods={"GET"})
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste de tous les utilisateurs",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *     )
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="Numéro de page",
+     *     @OA\Schema(type="integer", example=1)
+     * )
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Nombre d'éléments par page",
+     *     @OA\Schema(type="integer", example=4)
+     * )
      * 
      * @param Request $request
      * @param UserRepository $userRepository
@@ -49,50 +78,36 @@ class UserController extends AbstractController
     */
     public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
-        // Pagination ...
-        // Récupérez les données du Body de la requête en JSON
-        $requestData = json_decode($request->getContent(), true);
-
-        // S'assurez-vous que les données de pagination sont présentes et valides
-        if (!isset($requestData['page']) || !isset($requestData['limit'])) {
-            return new JsonResponse(['error' => 'données invalide'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        // Si les données de pagination sont présente en Body et valides, je les attribue au var $page et $limit
-        $page = $requestData['page'];
-        $limit = $requestData['limit'];
-
-
+        // Récupérez les paramètres de pagination depuis l'URL
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', 4);
 
         // Mise en Cache ...
-        // Systeme de mise en cache, créer un id qui represente la requete recu
+        // Système de mise en cache, créez un ID qui représente la requête reçue
         $idCache = "getAllUsers-" . $page . "-" . $limit;
 
-
         /*
-        * Mettre en cache l'objet déja serializer, la liste sera recuperer directement part mon cache si existe, 
-        * sinon utiliser la fonction anonyme passé en param
+        * Mettre en cache l'objet déjà sérialisé, la liste sera récupérée directement depuis le cache si elle existe,
+        * sinon utilisez la fonction anonyme passée en paramètre
         *
-        * Function anonyme : $item represente ce qui va etre stocker en cache
+        * Fonction anonyme : $item représente ce qui va être stocké en cache
         */
         $jsonUsersList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
-            echo ("L'element vient d'etre mise en cache !\n");
-            
-            // Attribuer le tag usersCache, qui permettra par la suite de savoir quel tag supprimer pour reset le cache
+            echo ("L'élément vient d'être mis en cache !\n");
+
+            // Attribuer le tag "usersCache", qui permettra par la suite de savoir quel tag supprimer pour réinitialiser le cache
             $item->tag("usersCache");
 
-            // Recuperer mes users en passant par la nouvelle methode de pagination
+            // Récupérer les utilisateurs en utilisant la nouvelle méthode de pagination
             $usersList = $userRepository->findAllWithPagination($page, $limit);
 
-            // Convertir grace au serializer ma usersList en json et stocker le resultat et indiqué que je veux le group getUsers
+            // Convertir la liste en JSON à l'aide du sérialiseur et stocker le résultat
             return $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
         });
 
-
-  
-
-        /* Retourne la liste convertit en json, la response, les headers part defaut, 
-        * et true qui indique au jsonresponse que les données sont déja convertis
+        /*
+        * Retourner la liste convertie en JSON, la réponse, les en-têtes par défaut,
+        * et true pour indiquer à JsonResponse que les données sont déjà converties
         */
         return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
     }

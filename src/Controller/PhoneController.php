@@ -25,12 +25,40 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
+// Doc Nelmio
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
+
+
+
 class PhoneController extends AbstractController
 {
     /**
-     * **************************** Retourne la liste de tous les phones, pagination et cache ********************************
+     * Retourne la liste des phones avec pagination.
      * 
      * @Route("/api/phones", name="app_phone", methods={"GET"})
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Retourne la liste des phones",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
+     * 
+     * @OA\Parameter(
+     *     name="page",
+     *     in="query",
+     *     description="Numéro de page",
+     *     @OA\Schema(type="integer", example=1)
+     * )
+     * @OA\Parameter(
+     *     name="limit",
+     *     in="query",
+     *     description="Nombre d'éléments par page",
+     *     @OA\Schema(type="integer", example=3)
+     * )
      * 
      * @param PhoneRepository $phoneRepository
      * @param SerializerInterface $serializer
@@ -40,50 +68,36 @@ class PhoneController extends AbstractController
     */
     public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
+        // Récupérez les paramètres de pagination depuis l'URL
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', 3);
 
-        // Pagination ...
-        // Récupérez les données du Body de la requête en JSON
-        $requestData = json_decode($request->getContent(), true);
-
-        // S'assurez-vous que les données de pagination sont présentes et valides
-        if (!isset($requestData['page']) || !isset($requestData['limit'])) {
-            return new JsonResponse(['error' => 'données invalide'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        // Si les données de pagination sont présente en Body et valides, je les attribue au var $page et $limit
-        $page = $requestData['page'];
-        $limit = $requestData['limit'];
-
-        
         // Mise en Cache ...
-        // Systeme de mise en cache, créer un id qui represente la requete recu
+        // Système de mise en cache, créer un ID qui représente la requête reçue
         $idCache = "getAllPhones-" . $page . "-" . $limit;
 
-        
         /*
-        * Mettre en cache l'objet déja serializer, la liste sera recuperer directement part mon cache si existe, 
-        * sinon utiliser la fonction anonyme passé en param
+        * Mettre en cache l'objet déjà sérialisé, la liste sera récupérée directement depuis le cache si elle existe,
+        * sinon utiliser la fonction anonyme passée en paramètre
         *
-        * Function anonyme : $item represente ce qui va etre stocker en cache
+        * Fonction anonyme : $item représente ce qui va être stocké en cache
         */
         $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-            echo ("L'element vient d'etre mise en cache !\n");
-            
-            // Attribuer le tag phonesCache, qui permettra par la suite de savoir quel tag supprimer pour reset le cache
+            echo ("L'élément vient d'être mis en cache !\n");
+
+            // Attribuer le tag "phonesCache", qui permettra par la suite de savoir quel tag supprimer pour réinitialiser le cache
             $item->tag("phonesCache");
 
-            // Recuperer mes phones en passant par la nouvelle methode de pagination
+            // Récupérer les phones en utilisant la nouvelle méthode de pagination
             $phonesList = $phoneRepository->findAllWithPagination($page, $limit);
 
-            // Convertir grace au serializer ma phonesList en json et stocker le resultat
+            // Convertir la liste en JSON à l'aide du sérialiseur et stocker le résultat
             return $serializer->serialize($phonesList, 'json');
         });
 
-
-     
-        /* 
-        * Retourne la liste convertit en json, la response, les headers part defaut, 
-        * et true qui indique au jsonresponse que les données sont déja convertis
+        /*
+        * Retourner la liste convertie en JSON, la réponse, les en-têtes par défaut,
+        * et true pour indiquer à JsonResponse que les données sont déjà converties
         */
         return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
     }
