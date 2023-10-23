@@ -38,9 +38,8 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 
 
-class UserController extends AbstractController
+class UserController extends SuperController
 {
-
 
 
     /**
@@ -78,40 +77,15 @@ class UserController extends AbstractController
     */
     public function getAllUsers(Request $request, UserRepository $userRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
-        // Récupérez les paramètres de pagination depuis l'URL
         $page = $request->query->get('page', 1);
         $limit = $request->query->get('limit', 4);
 
-        // Mise en Cache ...
-        // Système de mise en cache, créez un ID qui représente la requête reçue
-        $idCache = "getAllUsers-" . $page . "-" . $limit;
+        $jsonItemsList = $this->getItemsListWithCache($userRepository, $serializer, $cache, $page, $limit, "getAllUsers", "user", "tagUser");
 
-        /*
-        * Mettre en cache l'objet déjà sérialisé, la liste sera récupérée directement depuis le cache si elle existe,
-        * sinon utilisez la fonction anonyme passée en paramètre
-        *
-        * Fonction anonyme : $item représente ce qui va être stocké en cache
-        */
-        $jsonUsersList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
-            echo ("L'élément vient d'être mis en cache !\n");
-
-            // Attribuer le tag "usersCache", qui permettra par la suite de savoir quel tag supprimer pour réinitialiser le cache
-            $item->tag("usersCache");
-
-            // Récupérer les utilisateurs en utilisant la nouvelle méthode de pagination
-            $usersList = $userRepository->findAllWithPagination($page, $limit);
-
-            // Convertir la liste en JSON à l'aide du sérialiseur et stocker le résultat
-            return $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
-        });
-
-        /*
-        * Retourner la liste convertie en JSON, la réponse, les en-têtes par défaut,
-        * et true pour indiquer à JsonResponse que les données sont déjà converties
-        */
-        return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonItemsList, Response::HTTP_OK, [], true);
     }
 
+    
 
 
     /**
@@ -246,7 +220,7 @@ class UserController extends AbstractController
         * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
         * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
         */
-        $cache->invalidateTags(["usersCache"]);
+        $cache->invalidateTags(["tagUser"]);
 
         // Supprimer le user en question
         $em->remove($user);

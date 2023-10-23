@@ -31,7 +31,7 @@ use OpenApi\Annotations as OA;
 
 
 
-class PhoneController extends AbstractController
+class PhoneController extends SuperController
 {
     /**
      * Retourne la liste des phones avec pagination.
@@ -66,40 +66,14 @@ class PhoneController extends AbstractController
      * @param TagAwareCacheInterface $cache
      * @return JsonResponse
     */
-    public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
+    public function getAllPhones(Request $request, PhoneRepository $phoneRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
-        // Récupérez les paramètres de pagination depuis l'URL
         $page = $request->query->get('page', 1);
-        $limit = $request->query->get('limit', 3);
+        $limit = $request->query->get('limit', 4);
 
-        // Mise en Cache ...
-        // Système de mise en cache, créer un ID qui représente la requête reçue
-        $idCache = "getAllPhones-" . $page . "-" . $limit;
+        $jsonItemsList = $this->getItemsListWithCache($phoneRepository, $serializer, $cache, $page, $limit, "getAllPhones", "phone", "tagPhone");
 
-        /*
-        * Mettre en cache l'objet déjà sérialisé, la liste sera récupérée directement depuis le cache si elle existe,
-        * sinon utiliser la fonction anonyme passée en paramètre
-        *
-        * Fonction anonyme : $item représente ce qui va être stocké en cache
-        */
-        $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-            echo ("L'élément vient d'être mis en cache !\n");
-
-            // Attribuer le tag "phonesCache", qui permettra par la suite de savoir quel tag supprimer pour réinitialiser le cache
-            $item->tag("phonesCache");
-
-            // Récupérer les phones en utilisant la nouvelle méthode de pagination
-            $phonesList = $phoneRepository->findAllWithPagination($page, $limit);
-
-            // Convertir la liste en JSON à l'aide du sérialiseur et stocker le résultat
-            return $serializer->serialize($phonesList, 'json');
-        });
-
-        /*
-        * Retourner la liste convertie en JSON, la réponse, les en-têtes par défaut,
-        * et true pour indiquer à JsonResponse que les données sont déjà converties
-        */
-        return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
+        return new JsonResponse($jsonItemsList, Response::HTTP_OK, [], true);
     }
 
 
@@ -190,7 +164,7 @@ class PhoneController extends AbstractController
         * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
         * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
         */
-        $cache->invalidateTags(["phonesCache"]);
+        $cache->invalidateTags(["tagPhone"]);
 
         // Supprimer le phone en question
         $em->remove($phone);
@@ -223,7 +197,7 @@ class PhoneController extends AbstractController
         * Utiliser le tag du cache mis en place en GET Phones pour supprimer le cache lors du DELETE afin que le cache soit recalculer 
         * lors du GET et afin de garantir en permanence que nos données en cache sont Ok avec la realite
         */
-        $cache->invalidateTags(["phonesCache"]);
+        $cache->invalidateTags(["tagPhone"]);
 
         // Grace à AbstractNormalizer, je deserialize directement à l'interieur de currentPhone
         $updatedPhone = $serializer->deserialize($request->getContent(), 
